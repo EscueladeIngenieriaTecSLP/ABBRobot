@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ABB VIDEO EDITADO con sonido</title>
+    <title>ABB AR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <!-- Librerías principales -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -52,48 +52,53 @@
     </div>
 
     <!-- Escena AR -->
-    <a-scene embedded arjs>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      arjs="detectionMode: mono; trackingMethod: best; sourceType: webcam; debugUIEnabled: false"
+    >
       <a-assets>
-        <!-- IMPORTANTE: ya no lleva muted -->
-        <video 
-          id="ABB VIDEO EDITADO"
+        <!-- Evita espacios en el id -->
+        <video
+          id="abbVideo"
           src="ABB VIDEO EDITADO.mp4"
           preload="auto"
           playsinline
           webkit-playsinline
-          loop>
-        </video>
+          loop
+        ></video>
       </a-assets>
 
-      <a-marker type="pattern" url="marker2.patt" id="marker">
+      <!-- Marcador ABB -->
+      <a-marker type="pattern" url="marker2.patt" id="marker" emitevents="true">
         <a-video
-          src="#ABB VIDEO EDITADO"
+          src="#abbVideo"
           width="1"
           height="2"
           position="0 0 0"
           rotation="-90 0 0"
-          loop="true">
-        </a-video>
+          loop="true"
+        ></a-video>
 
         <a-text
-          value="UR3: 6 DOF | 3kg payload | 500mm reach"
+          value="ABB: demo de video"
           position="0 1.2 0"
           rotation="-90 0 0"
           scale="0.4 0.4 0.4"
-          color="red">
-        </a-text>
+          color="red"
+        ></a-text>
       </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const video = document.getElementById('ur3video');
+      const video = document.getElementById('abbVideo');
       const marker = document.getElementById('marker');
       const overlay = document.getElementById('overlay');
       const startBtn = document.getElementById('startBtn');
 
-      // Flags necesarios
+      // Flags recomendados para móviles
       video.playsInline = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
@@ -109,16 +114,16 @@
         }
       });
 
-      // Al detectar el marcador, aseguramos que siga reproduciendo
+      // Al detectar el marcador, reproducir si está en pausa (tras haber presionado el botón)
       marker.addEventListener('markerFound', () => {
-        if (video.paused) {
+        if (overlay.style.display === 'none' && video.paused) {
           video.play().catch(err => console.warn('Error al reproducir:', err));
         }
       });
 
       // Pausa el video al perder el marcador
       marker.addEventListener('markerLost', () => {
-        video.pause();
+        if (!video.paused) video.pause();
       });
     </script>
   </body>
