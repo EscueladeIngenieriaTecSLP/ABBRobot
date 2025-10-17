@@ -52,48 +52,44 @@
     </div>
 
     <!-- Escena AR -->
-    <a-scene
-      embedded
-      vr-mode-ui="enabled: false"
-      arjs="detectionMode: mono; trackingMethod: best; sourceType: webcam; debugUIEnabled: false"
-    >
+    <a-scene embedded arjs vr-mode-ui="enabled: false">
       <a-assets>
-        <!-- Evita espacios en el id -->
+        <!-- IMPORTANTE: evita espacios en el id -->
         <video
-          id="abbVideo"
+          id="ABB"
           src="ABB VIDEO EDITADO.mp4"
           preload="auto"
           playsinline
           webkit-playsinline
-          loop
-        ></video>
+          loop>
+        </video>
       </a-assets>
 
-      <!-- Marcador ABB -->
-      <a-marker type="pattern" url="marker2.patt" id="marker" emitevents="true">
+      <!-- Tu marcador -->
+      <a-marker type="pattern" url="marker2.patt" id="marker">
         <a-video
-          src="#abbVideo"
+          src="#ABB"
           width="1"
           height="2"
           position="0 0 0"
           rotation="-90 0 0"
-          loop="true"
-        ></a-video>
+          loop="true">
+        </a-video>
 
         <a-text
-          value="ABB: demo de video"
+          value="ABB | Video demo"
           position="0 1.2 0"
           rotation="-90 0 0"
           scale="0.4 0.4 0.4"
-          color="red"
-        ></a-text>
+          color="red">
+        </a-text>
       </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const video = document.getElementById('abbVideo');
+      const video = document.getElementById('ABB');
       const marker = document.getElementById('marker');
       const overlay = document.getElementById('overlay');
       const startBtn = document.getElementById('startBtn');
@@ -114,10 +110,12 @@
         }
       });
 
-      // Al detectar el marcador, reproducir si está en pausa (tras haber presionado el botón)
+      // Al detectar el marcador, reproducir si está en pausa (p. ej., al volver al marcador)
       marker.addEventListener('markerFound', () => {
-        if (overlay.style.display === 'none' && video.paused) {
-          video.play().catch(err => console.warn('Error al reproducir:', err));
+        if (!overlay || overlay.style.display === 'none') {
+          if (video.paused) {
+            video.play().catch(err => console.warn('Error al reproducir:', err));
+          }
         }
       });
 
