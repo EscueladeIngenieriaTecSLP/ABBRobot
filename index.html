@@ -4,7 +4,6 @@
     <title>ABB AR Reel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-    <!-- Librerías -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.2.1/aframe/build/aframe-ar.js"></script>
 
@@ -13,15 +12,12 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        touch-action: none;
-        font-family: system-ui, sans-serif;
       }
 
-      /* Overlay inicial */
       #overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(0,0,0,0.9);
         color: white;
         display: flex;
         flex-direction: column;
@@ -30,21 +26,6 @@
         z-index: 9999;
       }
 
-      #overlay button {
-        background-color: #ff3333;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        font-size: 18px;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-
-      #overlay button:hover {
-        background-color: #ff5555;
-      }
-
-      /* VIDEO FULLSCREEN tipo REEL */
       #fullscreenVideo {
         position: fixed;
         inset: 0;
@@ -59,77 +40,79 @@
   </head>
 
   <body>
-    <!-- Pantalla inicial -->
+
+    <!-- OVERLAY -->
     <div id="overlay">
-      <p>🎧 Toca para iniciar experiencia</p>
+      <p>🎧 Toca para iniciar</p>
       <button id="startBtn">Iniciar</button>
     </div>
 
     <!-- VIDEO FULLSCREEN -->
     <video
-      id="fullscreenVideo"
-      src="ABB VIDEO EDITADO.mp4"
-      preload="auto"
+      id="video"
+      src="abb-video.mp4"
       playsinline
       webkit-playsinline
+      preload="auto"
       loop>
     </video>
 
-    <!-- ESCENA AR -->
+    <!-- AR -->
     <a-scene embedded arjs vr-mode-ui="enabled: false">
-      
-      <!-- MARCADOR (solo como trigger) -->
-      <a-marker type="pattern" url="marker1.patt" id="marker">
-        <a-text
-          value="Detectando marcador..."
-          position="0 0 0"
-          rotation="-90 0 0"
-          scale="0.5 0.5 0.5"
-          color="red">
-        </a-text>
-      </a-marker>
-
+      <a-marker type="pattern" url="marker1.patt" id="marker"></a-marker>
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const video = document.getElementById('fullscreenVideo');
+      const video = document.getElementById('video');
       const marker = document.getElementById('marker');
       const overlay = document.getElementById('overlay');
-      const startBtn = document.getElementById('startBtn');
+      const btn = document.getElementById('startBtn');
+
+      let ready = false;
 
       // Config móvil
-      video.playsInline = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
 
-      let started = false;
+      // 🔥 PASO CLAVE: desbloquear video
+      btn.addEventListener('click', async () => {
+        try {
+          video.muted = true;
+          await video.play();   // desbloquea autoplay
+          video.pause();
+          video.currentTime = 0;
+          video.muted = false;
 
-      // Botón inicial (necesario para audio en móviles)
-      startBtn.addEventListener('click', () => {
-        overlay.style.display = 'none';
-        started = true;
+          overlay.style.display = 'none';
+          ready = true;
+
+          console.log('✅ Video desbloqueado');
+        } catch (e) {
+          alert('Error: ' + e);
+        }
       });
 
-      // Detecta marcador → muestra video fullscreen
+      // Detecta marcador
       marker.addEventListener('markerFound', async () => {
-        if (!started) return;
+        if (!ready) return;
 
         try {
           video.style.display = 'block';
           await video.play();
-          console.log('🎬 Reel activo');
-        } catch (err) {
-          console.warn('Error al reproducir:', err);
+          console.log('🎬 FULLSCREEN ON');
+        } catch (e) {
+          console.warn(e);
         }
       });
 
-      // Pierde marcador → oculta video
+      // Pierde marcador
       marker.addEventListener('markerLost', () => {
         video.pause();
         video.style.display = 'none';
-        console.log('⛔ Reel oculto');
+        console.log('⛔ FULLSCREEN OFF');
       });
     </script>
+
   </body>
 </html>
