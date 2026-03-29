@@ -4,6 +4,7 @@
     <title>ABB AR Reel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
+    <!-- Librerías -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.2.1/aframe/build/aframe-ar.js"></script>
 
@@ -12,8 +13,10 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
+        background: black;
       }
 
+      /* Overlay inicio */
       #overlay {
         position: fixed;
         inset: 0;
@@ -24,17 +27,29 @@
         align-items: center;
         justify-content: center;
         z-index: 9999;
+        font-family: system-ui;
       }
 
-      #fullscreenVideo {
+      #overlay button {
+        padding: 12px 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+        background: #ff3333;
+        color: white;
+      }
+
+      /* VIDEO FULLSCREEN (SIN ZOOM) */
+      #video {
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
         width: 100vw;
         height: 100vh;
-        object-fit: cover;
+        object-fit: contain; /* 🔥 evita zoom */
+        background: black;
         display: none;
         z-index: 9998;
-        background: black;
       }
     </style>
   </head>
@@ -47,10 +62,10 @@
       <button id="startBtn">Iniciar</button>
     </div>
 
-    <!-- VIDEO FULLSCREEN -->
+    <!-- VIDEO -->
     <video
       id="video"
-      src="ABB VIDEO EDITADO.mp4"
+      src="abb-video-editado.mp4"
       playsinline
       webkit-playsinline
       preload="auto"
@@ -71,15 +86,14 @@
 
       let ready = false;
 
-      // Config móvil
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
 
-      // 🔥 PASO CLAVE: desbloquear video
+      // 🔥 Desbloquear audio/video en móvil
       btn.addEventListener('click', async () => {
         try {
           video.muted = true;
-          await video.play();   // desbloquea autoplay
+          await video.play();
           video.pause();
           video.currentTime = 0;
           video.muted = false;
@@ -87,30 +101,28 @@
           overlay.style.display = 'none';
           ready = true;
 
-          console.log('✅ Video desbloqueado');
+          console.log('✅ Listo');
         } catch (e) {
           alert('Error: ' + e);
         }
       });
 
-      // Detecta marcador
+      // Mostrar video al detectar marcador
       marker.addEventListener('markerFound', async () => {
         if (!ready) return;
 
         try {
           video.style.display = 'block';
           await video.play();
-          console.log('🎬 FULLSCREEN ON');
         } catch (e) {
           console.warn(e);
         }
       });
 
-      // Pierde marcador
+      // Ocultar video al perder marcador
       marker.addEventListener('markerLost', () => {
         video.pause();
         video.style.display = 'none';
-        console.log('⛔ FULLSCREEN OFF');
       });
     </script>
 
