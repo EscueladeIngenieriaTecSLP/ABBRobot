@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ABB AR Reel</title>
+    <title>ABB AR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <!-- Librerías -->
@@ -13,116 +13,120 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background: black;
+        touch-action: none;
+        font-family: system-ui, sans-serif;
       }
 
       /* Overlay inicio */
       #overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.9);
+        background: rgba(0, 0, 0, 0.85);
         color: white;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        font-family: system-ui;
       }
 
       #overlay button {
+        background-color: #ff3333;
+        color: white;
+        border: none;
         padding: 12px 20px;
         font-size: 18px;
-        border: none;
         border-radius: 8px;
-        background: #ff3333;
-        color: white;
+        cursor: pointer;
       }
 
-      /* VIDEO FULLSCREEN (SIN ZOOM) */
-      #video {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        object-fit: contain; /* 🔥 evita zoom */
-        background: black;
-        display: none;
-        z-index: 9998;
+      #overlay button:hover {
+        background-color: #ff5555;
       }
     </style>
   </head>
 
   <body>
 
-    <!-- OVERLAY -->
+    <!-- Overlay -->
     <div id="overlay">
-      <p>🎧 Toca para iniciar</p>
-      <button id="startBtn">Iniciar</button>
+      <p>🎧 Toca para iniciar el video con sonido</p>
+      <button id="startBtn">Reproducir</button>
     </div>
 
-    <!-- VIDEO -->
-    <video
-      id="video"
-      src="ABB VIDEO EDITADO.mp4"
-      playsinline
-      webkit-playsinline
-      preload="auto"
-      loop>
-    </video>
-
-    <!-- AR -->
+    <!-- Escena AR -->
     <a-scene embedded arjs vr-mode-ui="enabled: false">
-      <a-marker type="pattern" url="marker2.patt" id="marker"></a-marker>
+      
+      <a-assets>
+        <video
+          id="abbVideo"
+          src="ABB VIDEO EDITADO.mp4"
+          preload="auto"
+          playsinline
+          webkit-playsinline
+          loop>
+        </video>
+      </a-assets>
+
+      <!-- MARKER 2 -->
+      <a-marker type="pattern" url="marker2.patt" id="marker">
+
+        <!-- 🔥 VIDEO CORREGIDO (SIN ZOOM RARO) -->
+        <a-video
+          src="#abbVideo"
+          width="2"
+          height="1.125"
+          position="0 0 0"
+          rotation="-90 0 0"
+          material="shader: flat; side: double;">
+        </a-video>
+
+        <a-text
+          value="ABB | Video demo"
+          position="0 1.2 0"
+          rotation="-90 0 0"
+          scale="0.4 0.4 0.4"
+          color="red">
+        </a-text>
+
+      </a-marker>
+
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const video = document.getElementById('video');
+      const video = document.getElementById('abbVideo');
       const marker = document.getElementById('marker');
       const overlay = document.getElementById('overlay');
-      const btn = document.getElementById('startBtn');
+      const startBtn = document.getElementById('startBtn');
 
-      let ready = false;
-
+      // Config móvil
+      video.playsInline = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
 
-      // 🔥 Desbloquear audio/video en móvil
-      btn.addEventListener('click', async () => {
+      // Botón inicio (audio)
+      startBtn.addEventListener('click', async () => {
         try {
-          video.muted = true;
           await video.play();
-          video.pause();
-          video.currentTime = 0;
-          video.muted = false;
-
           overlay.style.display = 'none';
-          ready = true;
-
-          console.log('✅ Listo');
-        } catch (e) {
-          alert('Error: ' + e);
+        } catch (err) {
+          alert('Error al reproducir: ' + err.message);
         }
       });
 
-      // Mostrar video al detectar marcador
-      marker.addEventListener('markerFound', async () => {
-        if (!ready) return;
-
-        try {
-          video.style.display = 'block';
-          await video.play();
-        } catch (e) {
-          console.warn(e);
+      // Detecta marcador
+      marker.addEventListener('markerFound', () => {
+        if (overlay.style.display === 'none') {
+          if (video.paused) {
+            video.play().catch(err => console.warn(err));
+          }
         }
       });
 
-      // Ocultar video al perder marcador
+      // Pierde marcador
       marker.addEventListener('markerLost', () => {
-        video.pause();
-        video.style.display = 'none';
+        if (!video.paused) video.pause();
       });
     </script>
 
