@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ABB AR</title>
+    <title>ABB AR Reel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <!-- Librerías principales -->
+
+    <!-- Librerías -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.2.1/aframe/build/aframe-ar.js"></script>
+
     <style>
       body, html {
         margin: 0;
@@ -15,7 +17,7 @@
         font-family: system-ui, sans-serif;
       }
 
-      /* Pantalla inicial para pedir interacción del usuario */
+      /* Overlay inicial */
       #overlay {
         position: fixed;
         inset: 0;
@@ -41,45 +43,48 @@
       #overlay button:hover {
         background-color: #ff5555;
       }
+
+      /* VIDEO FULLSCREEN tipo REEL */
+      #fullscreenVideo {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        display: none;
+        z-index: 9998;
+        background: black;
+      }
     </style>
   </head>
 
   <body>
-    <!-- Overlay de inicio -->
+    <!-- Pantalla inicial -->
     <div id="overlay">
-      <p>🎧 Toca para iniciar el video con sonido</p>
-      <button id="startBtn">Reproducir</button>
+      <p>🎧 Toca para iniciar experiencia</p>
+      <button id="startBtn">Iniciar</button>
     </div>
 
-    <!-- Escena AR -->
-    <a-scene embedded arjs vr-mode-ui="enabled: false">
-      <a-assets>
-        <video
-          id="abbVideo"
-          src="ABB VIDEO EDITADO.mp4"
-          preload="auto"
-          playsinline
-          webkit-playsinline
-          loop>
-        </video>
-      </a-assets>
+    <!-- VIDEO FULLSCREEN -->
+    <video
+      id="fullscreenVideo"
+      src="ABB VIDEO EDITADO.mp4"
+      preload="auto"
+      playsinline
+      webkit-playsinline
+      loop>
+    </video>
 
-      <!-- Tu marcador -->
-      <a-marker type="pattern" url="marker2.patt" id="marker">
-        <a-video
-          src="#abbVideo"
-          width="1"
-          height="2"
+    <!-- ESCENA AR -->
+    <a-scene embedded arjs vr-mode-ui="enabled: false">
+      
+      <!-- MARCADOR (solo como trigger) -->
+      <a-marker type="pattern" url="marker1.patt" id="marker">
+        <a-text
+          value="Detectando marcador..."
           position="0 0 0"
           rotation="-90 0 0"
-          loop="true">
-        </a-video>
-
-        <a-text
-          value="ABB | Video demo"
-          position="0 1.2 0"
-          rotation="-90 0 0"
-          scale="0.4 0.4 0.4"
+          scale="0.5 0.5 0.5"
           color="red">
         </a-text>
       </a-marker>
@@ -88,35 +93,42 @@
     </a-scene>
 
     <script>
-      const video = document.getElementById('abbVideo');
+      const video = document.getElementById('fullscreenVideo');
       const marker = document.getElementById('marker');
       const overlay = document.getElementById('overlay');
       const startBtn = document.getElementById('startBtn');
 
+      // Config móvil
       video.playsInline = true;
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
 
-      startBtn.addEventListener('click', async () => {
+      let started = false;
+
+      // Botón inicial (necesario para audio en móviles)
+      startBtn.addEventListener('click', () => {
+        overlay.style.display = 'none';
+        started = true;
+      });
+
+      // Detecta marcador → muestra video fullscreen
+      marker.addEventListener('markerFound', async () => {
+        if (!started) return;
+
         try {
+          video.style.display = 'block';
           await video.play();
-          overlay.style.display = 'none';
-          console.log('🎬 Video con sonido reproducido');
+          console.log('🎬 Reel activo');
         } catch (err) {
-          alert('No se pudo reproducir el video con sonido: ' + err.message);
+          console.warn('Error al reproducir:', err);
         }
       });
 
-      marker.addEventListener('markerFound', () => {
-        if (!overlay || overlay.style.display === 'none') {
-          if (video.paused) {
-            video.play().catch(err => console.warn('Error al reproducir:', err));
-          }
-        }
-      });
-
+      // Pierde marcador → oculta video
       marker.addEventListener('markerLost', () => {
-        if (!video.paused) video.pause();
+        video.pause();
+        video.style.display = 'none';
+        console.log('⛔ Reel oculto');
       });
     </script>
   </body>
